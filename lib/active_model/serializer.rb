@@ -201,18 +201,16 @@ end
       included_associations = filter(associations.keys)
       associations.each_with_object({}) do |(name, association), hash|
         if included_associations.include? name
-          association_serializer = build_serializer(association)
-          # we must do this always because even if the current association is not
-          # embeded in root, it might have its own associations that are embeded in root
-          hash.merge!(association_serializer.embedded_in_root_associations) do |key, oldval, newval|
-            if oldval.respond_to?(:to_ary)
-              [oldval, newval].flatten.uniq
-            else
-              oldval.merge(newval) { |_, oldval, newval| [oldval, newval].flatten.uniq }
-            end
-          end
-
           if association.embed_in_root?
+            association_serializer = build_serializer(association)
+            hash.merge!(association_serializer.embedded_in_root_associations) do |key, oldval, newval|
+              if oldval.respond_to?(:to_ary)
+                [oldval, newval].flatten.uniq
+              else
+                oldval.merge(newval) { |_, oldval, newval| [oldval, newval].flatten.uniq }
+              end
+            end
+
             if association.embed_in_root_key?
               hash = hash[association.embed_in_root_key] ||= {}
             end
